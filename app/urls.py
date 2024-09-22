@@ -15,9 +15,16 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from capybuyra import views
+from rest_framework.routers import DefaultRouter
+from capybuyra.api import OrdersViewSet
+
+router = DefaultRouter()
+router.register("orders", OrdersViewSet, basename="students")
+
 urlpatterns = [
     path('', views.ShowOrdersView.as_view()),
     path('admin/', admin.site.urls),
+    path('api/', include(router.urls)),
 ]
