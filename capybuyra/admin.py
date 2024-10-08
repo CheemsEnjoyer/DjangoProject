@@ -1,15 +1,15 @@
 from django.contrib import admin
 
 # Register your models here.
-from capybuyra.models import Orders, Client, Product, Category, ShoppingCart, ProductShoppingCart, OrderProduct, Review
+from capybuyra.models import *
 
 @admin.register(Orders)
 class OrdersAdmin(admin.ModelAdmin):
-    list_display = ['id', 'address', "client_id", "sum", "status"]
+    list_display = ['id', 'address', 'customer_id', 'sum', 'status']
 
-@admin.register(Client)
-class ClientAdmin(admin.ModelAdmin):
-    list_display = [ 'id','name', 'password', 'email']
+@admin.register(Customer)
+class CustomerAdmin(admin.ModelAdmin):
+    list_display = ['id', 'user']
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
@@ -21,12 +21,11 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(ShoppingCart)
 class ShoppingCartAdmin(admin.ModelAdmin):
-    list_display = ['id', 'sum', 'client_id']
-
+    list_display = ['id', 'sum', 'customer_id']
 
 @admin.register(ProductShoppingCart)
 class ProductShoppingCartAdmin(admin.ModelAdmin):
-    list_display = ['id', 'product_id', 'shoppingCart_id']
+    list_display = ['id', 'product_id', 'shopping_cart_id']
 
 @admin.register(OrderProduct)
 class OrderProductAdmin(admin.ModelAdmin):
@@ -34,4 +33,4 @@ class OrderProductAdmin(admin.ModelAdmin):
 
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
-    list_display = ['id', 'text', 'rating', 'client_id', 'product_id']
+    list_display = ['id', 'text', 'rating', 'customer_id', 'product_id']

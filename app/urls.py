@@ -18,15 +18,19 @@ from django.contrib import admin
 from django.urls import path, include
 from capybuyra import views
 from rest_framework.routers import DefaultRouter
-from capybuyra.api import OrdersViewSet, ClientViewSet
+from capybuyra.api import *
 
 router = DefaultRouter()
-router.register("orders", OrdersViewSet, basename="orders")
-router.register("clients", ClientViewSet, basename="clients")
+router.register('orders', OrdersViewSet, basename='orders')
+router.register('customers', CustomerViewSet, basename='customers')
+router.register('categories', CategoryViewSet, basename='categories')
+router.register('products', ProductViewSet, basename='products')
+router.register('shoppingcarts', ShoppingCartViewSet, basename='shoppingcarts')
+router.register('reviews', ReviewViewSet, basename='reviews')
+
 
 urlpatterns = [
     path('', views.ShowOrdersView.as_view()),
-    path('', views.ShowClientsView.as_view()),
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
 ]
