@@ -5,7 +5,7 @@ from capybuyra.models import *
 
 @admin.register(Orders)
 class OrdersAdmin(admin.ModelAdmin):
-    list_display = ['id', 'address', 'customer_id', 'sum', 'status']
+    list_display = ['id', 'address', 'user_id', 'sum', 'status']
 
 @admin.register(Customer)
 class CustomerAdmin(admin.ModelAdmin):
@@ -21,7 +21,7 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(ShoppingCart)
 class ShoppingCartAdmin(admin.ModelAdmin):
-    list_display = ['id', 'sum', 'customer_id']
+    list_display = ['id', 'sum', 'user_id']
 
 @admin.register(ProductShoppingCart)
 class ProductShoppingCartAdmin(admin.ModelAdmin):
@@ -33,4 +33,4 @@ class OrderProductAdmin(admin.ModelAdmin):
 
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
-    list_display = ['id', 'text', 'rating', 'customer_id', 'product_id']
+    list_display = ['id', 'text', 'rating', 'user_id', 'product_id']

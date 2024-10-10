@@ -13,10 +13,17 @@ class Customer(models.Model):
         return self.user.get_full_name()
 
 class Orders(models.Model):
+    STATUS_CHOICES = [
+        ('ordered', 'Оформлен'),
+        ('assembling', 'Собирается'),
+        ('in_transit', 'В пути'),
+        ('arrived', 'Прибыл в пункт доставки'),
+        ('picked_up', 'Забран'),
+    ]
     address = models.TextField("Адрес")
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     sum = models.DecimalField("Цена", max_digits=10, decimal_places=2)
-    status = models.TextField("Статус")
+    status = models.CharField("Статус", max_length=20, choices=STATUS_CHOICES, default='ordered')
 
     class Meta:
         verbose_name = "Заказ"
@@ -42,7 +49,7 @@ class Product(models.Model):
 
 class ShoppingCart(models.Model):
     sum = models.DecimalField("Цена", max_digits=10, decimal_places=2)
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, null=True) 
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
 
     class Meta:
         verbose_name = "Корзина"
@@ -62,7 +69,7 @@ class Review(models.Model):
         "Оценка", 
         validators=[MinValueValidator(1), MaxValueValidator(5)]
     )
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True)
 
     class Meta:

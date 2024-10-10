@@ -7,6 +7,7 @@ class OrdersViewSet(mixins.ListModelMixin,
                     mixins.UpdateModelMixin, 
                     mixins.RetrieveModelMixin, 
                     mixins.CreateModelMixin, 
+                    mixins.DestroyModelMixin,
                     GenericViewSet):
     queryset = Orders.objects.all()
 
@@ -19,7 +20,7 @@ class OrdersViewSet(mixins.ListModelMixin,
         return self.create(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
+        return self.delete(request, *args, **kwargs)
 
     def put(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
@@ -29,6 +30,7 @@ class CustomerViewSet(mixins.ListModelMixin,
                     mixins.UpdateModelMixin, 
                     mixins.RetrieveModelMixin, 
                     mixins.CreateModelMixin, 
+                    mixins.DestroyModelMixin, 
                     GenericViewSet):
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
@@ -41,7 +43,7 @@ class CustomerViewSet(mixins.ListModelMixin,
         return self.create(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
+        return self.delete(request, *args, **kwargs)
 
     def put(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
@@ -50,6 +52,7 @@ class CategoryViewSet(mixins.ListModelMixin,
                     mixins.UpdateModelMixin, 
                     mixins.RetrieveModelMixin, 
                     mixins.CreateModelMixin, 
+                    mixins.DestroyModelMixin, 
                     GenericViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
@@ -62,7 +65,7 @@ class CategoryViewSet(mixins.ListModelMixin,
         return self.create(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
+        return self.delete(request, *args, **kwargs)
 
     def put(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
@@ -70,7 +73,8 @@ class CategoryViewSet(mixins.ListModelMixin,
 class ProductViewSet(mixins.ListModelMixin, 
                     mixins.UpdateModelMixin, 
                     mixins.RetrieveModelMixin, 
-                    mixins.CreateModelMixin, 
+                    mixins.CreateModelMixin,
+                    mixins.DestroyModelMixin, 
                     GenericViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
@@ -82,7 +86,7 @@ class ProductViewSet(mixins.ListModelMixin,
         return self.create(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
+        return self.delete(request, *args, **kwargs)
 
     def put(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
@@ -90,7 +94,8 @@ class ProductViewSet(mixins.ListModelMixin,
 class ShoppingCartViewSet(mixins.ListModelMixin, 
                     mixins.UpdateModelMixin, 
                     mixins.RetrieveModelMixin, 
-                    mixins.CreateModelMixin, 
+                    mixins.CreateModelMixin,
+                    mixins.DestroyModelMixin,  
                     GenericViewSet):
     queryset = ShoppingCart.objects.all()
     serializer_class = ShoppingCartSerializer
@@ -102,7 +107,7 @@ class ShoppingCartViewSet(mixins.ListModelMixin,
         return self.create(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
+        return self.delete(request, *args, **kwargs)
 
     def put(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
@@ -110,7 +115,8 @@ class ShoppingCartViewSet(mixins.ListModelMixin,
 class ReviewViewSet(mixins.ListModelMixin, 
                     mixins.UpdateModelMixin, 
                     mixins.RetrieveModelMixin, 
-                    mixins.CreateModelMixin, 
+                    mixins.CreateModelMixin,
+                    mixins.DestroyModelMixin,  
                     GenericViewSet):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
@@ -122,7 +128,7 @@ class ReviewViewSet(mixins.ListModelMixin,
         return self.create(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
+        return self.delete(request, *args, **kwargs)
 
     def put(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
@@ -130,7 +136,8 @@ class ReviewViewSet(mixins.ListModelMixin,
 class ProductShoppingCartViewSet(mixins.ListModelMixin, 
                     mixins.UpdateModelMixin, 
                     mixins.RetrieveModelMixin, 
-                    mixins.CreateModelMixin, 
+                    mixins.CreateModelMixin,
+                    mixins.DestroyModelMixin,  
                     GenericViewSet):
     queryset = ProductShoppingCart.objects.all()
     serializer_class = ProductShoppingCartSerializer
@@ -142,7 +149,7 @@ class ProductShoppingCartViewSet(mixins.ListModelMixin,
         return self.create(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
+        return self.delete(request, *args, **kwargs)
 
     def put(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
@@ -150,7 +157,8 @@ class ProductShoppingCartViewSet(mixins.ListModelMixin,
 class OrderProductViewSet(mixins.ListModelMixin, 
                     mixins.UpdateModelMixin, 
                     mixins.RetrieveModelMixin, 
-                    mixins.CreateModelMixin, 
+                    mixins.CreateModelMixin,
+                    mixins.DestroyModelMixin, 
                     GenericViewSet):
     queryset = OrderProduct.objects.all()
     serializer_class = OrderProductSerializer
@@ -162,7 +170,28 @@ class OrderProductViewSet(mixins.ListModelMixin,
         return self.create(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
+        return self.delete(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+class UserViewSet(mixins.ListModelMixin, 
+                    mixins.UpdateModelMixin, 
+                    mixins.RetrieveModelMixin, 
+                    mixins.CreateModelMixin,
+                    mixins.DestroyModelMixin,  
+                    GenericViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.delete(request, *args, **kwargs)
 
     def put(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)

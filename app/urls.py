@@ -27,7 +27,7 @@ router.register('categories', CategoryViewSet, basename='categories')
 router.register('products', ProductViewSet, basename='products')
 router.register('shoppingcarts', ShoppingCartViewSet, basename='shoppingcarts')
 router.register('reviews', ReviewViewSet, basename='reviews')
-
+router.register('users', UserViewSet, basename='users')
 
 urlpatterns = [
     path('', views.ShowOrdersView.as_view()),
