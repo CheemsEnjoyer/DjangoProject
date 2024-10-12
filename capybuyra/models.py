@@ -42,7 +42,7 @@ class Product(models.Model):
     description = models.TextField("Статус")
     amount = models.IntegerField("Количество")
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True)
-
+    picture = models.ImageField("Изображение", null=True, upload_to="products")
     class Meta:
         verbose_name = "Товар"
         verbose_name_plural = "Товары"

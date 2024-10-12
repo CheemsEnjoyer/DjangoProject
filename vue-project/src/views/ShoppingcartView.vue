@@ -6,16 +6,16 @@ import Cookies from 'js-cookie';
 import 'bootstrap/dist/css/bootstrap.css';
 import _ from 'lodash';
 
-const ordersToAdd = ref({});
-const ordersToEdit = ref({});
+const shoppingcartsToAdd = ref({});
+const shoppingcartsToEdit = ref({});
 
 const customers = ref([]);
-const orders = ref([]);
+const shoppingcarts = ref([]);
 const users = ref([]);
 
 const loading = ref(false);
 
-const ordersById = computed(() => {
+const shoppingcartsById = computed(() => {
   return _.keyBy(shoppingcarts.value, (x) => x.id);
 });
 
@@ -24,47 +24,47 @@ async function fetchUsers() {
   users.value = r.data;
 }
 
-async function fetchOrders() {
+async function fetchShoppingcarts() {
   loading.value = true;
   const r = await axios.get('/api/shoppingcarts/');
-  orders.value = r.data;
+  shoppingcarts.value = r.data;
   loading.value = false;
 }
 
-async function onOrdersAdd() {
+async function onShoppingcartAdd() {
   await axios.post('/api/shoppingcarts/', {
-    ...ordersToAdd.value,
+    ...shoppingcartsToAdd.value,
   });
-  await fetchOrders();
+  await fetchShoppingcarts();
 }
 
-async function onRemoveClick(shoppingcarts) {
-  await axios.delete(`/api/shoppingcarts/${shoppingcarts.id}/`);
-  await fetchOrders(); // переподтягиваю
+async function onRemoveClick(shoppingcart) {
+  await axios.delete(`/api/shoppingcarts/${shoppingcart.id}/`);
+  await fetchShoppingcarts(); // переподтягиваю
 }
 
-async function onOrderEditClick(shoppingcarts) {
-  ordersToEdit.value = { ...shoppingcarts };
+async function onShoppingcartEditClick(shoppingcart) {
+  shoppingcartsToEdit.value = { ...shoppingcart };
 }
 
-async function onUpdateOrder() {
-  await axios.put(`/api/shoppingcarts/${ordersToEdit.value.id}/`, {
-    ...ordersToEdit.value,
+async function onUpdateShoppingcart() {
+  await axios.put(`/api/shoppingcarts/${shoppingcartsToEdit.value.id}/`, {
+    ...shoppingcartsToEdit.value,
   });
-  await fetchOrders();
+  await fetchShoppingcarts();
 }
 
 onBeforeMount(async () => {
   axios.defaults.headers.common['X-CSRFToken'] = Cookies.get('csrftoken');
   await fetchUsers();
-  await fetchOrders();
+  await fetchShoppingcarts();
 });
 </script>
 
 <template>
   <div
     class="modal fade"
-    id="editOrderModal"
+    id="editShoppingcartModal"
     tabindex="-1"
     aria-labelledby="exampleModalLabel"
     aria-hidden="true">
@@ -82,13 +82,13 @@ onBeforeMount(async () => {
           <div class="row">
             <div class="col">
               <div class="form-floating">
-                <input type="number" class="form-control" v-model="ordersToEdit.sum" required />
+                <input type="number" class="form-control" v-model="shoppingcartsToEdit.sum" required />
                 <label for="floatingInput">Сумма</label>
               </div>
             </div>
             <div class="col-auto">
               <div class="form-floating">
-                <select class="form-select" v-model="ordersToEdit.user_id" required>
+                <select class="form-select" v-model="shoppingcartsToEdit.user_id" required>
                   <option v-for="u in users" :value="u.id">{{ u.username }}</option>
                 </select>
                 <label for="floatingInput">Покупатель</label>
@@ -101,7 +101,7 @@ onBeforeMount(async () => {
           <button
             type="button"
             class="btn btn-primary"
-            @click="onUpdateOrder"
+            @click="onUpdateShoppingcart"
             data-bs-dismiss="modal">
             Сохранить
           </button>
@@ -111,17 +111,17 @@ onBeforeMount(async () => {
   </div>
 
   <div class="container-fluid">
-    <form @submit.prevent.stop="onOrdersAdd">
+    <form @submit.prevent.stop="onShoppingcartAdd">
       <div class="row">
         <div class="col">
           <div class="form-floating mb-3" style="margin-top: 10px;">
-            <input type="number" class="form-control" v-model="ordersToAdd.sum" required />
+            <input type="number" class="form-control" v-model="shoppingcartsToAdd.sum" required />
             <label for="floatingInput">Сумма</label>
           </div>
         </div>
         <div class="col-auto">
           <div class="form-floating mb-3" style="margin-top: 10px">
-            <select class="form-select" v-model="ordersToAdd.user_id" required>
+            <select class="form-select" v-model="shoppingcartsToAdd.user_id" required>
               <option v-for="u in users" :value="u.id">{{ u.username }}</option>
             </select>
             <label for="floatingInput">Покупатель</label>
@@ -132,14 +132,14 @@ onBeforeMount(async () => {
         </div>
       </div>
     </form>
-    <div v-for="item in orders" class="order_item" :key="item.id">
+    <div v-for="item in shoppingcarts" class="shoppingcart_item" :key="item.id">
       <span><b>Покупатель:</b> {{ item.user.username }}</span>
       <span><b>Сумма:</b> {{ item.sum }}</span>
       <button
         class="btn btn-info"
-        @click="onOrderEditClick(item)"
+        @click="onShoppingcartEditClick(item)"
         data-bs-toggle="modal"
-        data-bs-target="#editOrderModal">
+        data-bs-target="#editShoppingcartModal">
         <i class="bi bi-pen-fill"></i>
       </button>
       <button class="btn btn-danger" @click="onRemoveClick(item)"><i class="bi bi-x"></i></button>
@@ -148,14 +148,14 @@ onBeforeMount(async () => {
 </template>
 
 <style lang="scss" scoped>
-.order_item {
+.shoppingcart_item {
   padding: 1rem;
   margin: 0.5rem 0;
   border: 1px solid #d1d1d1;
   border-radius: 8px;
   background-color: #f9f9f9;
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr auto auto;
+  grid-template-columns: 1fr 1fr auto auto;
   gap: 16px;
   align-items: center;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
