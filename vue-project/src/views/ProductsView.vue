@@ -16,6 +16,9 @@ const loading = ref(false);
 const productPictureRef = ref();
 const productAddImageUrl = ref();
 const productEditImageUrl = ref();
+const productEditPictureRef = ref();
+
+const selectedPicture = ref(null);
 
 const productsById = computed(() => {
   return _.keyBy(products.value, (x) => x.id);
@@ -42,9 +45,8 @@ async function onProductsAdd() {
   formData.set('cost', productsToAdd.value.cost);
   formData.set('description', productsToAdd.value.description);
   formData.set('amount', productsToAdd.value.amount);
-  formData.set('category', productsToAdd.value.category);
+  formData.set('category_id', productsToAdd.value.category_id);
 
-  console.log(productsToAdd.value.category_id);
   await axios.post('/api/products/', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
@@ -63,22 +65,33 @@ async function onProductEditClick(product) {
 }
 
 async function onUpdateProduct() {
-  await axios.put(`/api/products/${productsToEdit.value.id}/`, {
-    ...productsToEdit.value,
+  const formData = new FormData();
+  if (productEditPictureRef.value.files[0]) {
+    formData.append('picture', productEditPictureRef.value.files[0]);
+  }
+  console.log(productEditPictureRef.value.files);
+  
+  formData.set('name', productsToEdit.value.name);
+  formData.set('cost', productsToEdit.value.cost);
+  formData.set('description', productsToEdit.value.description);
+  formData.set('amount', productsToEdit.value.amount);
+  formData.set('category_id', productsToEdit.value.category_id);
+
+  await axios.put(`/api/products/${productsToEdit.value.id}/`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
   });
   await fetchProducts();
 }
+
 
 async function productAddPictureChange() {
   productAddImageUrl.value = URL.createObjectURL(productPictureRef.value.files[0]);
 }
 
-const selectedPicture = ref(null);
-
-async function openPictureModal(pictureUrl) {
-  selectedPicture.value = pictureUrl;
-  const pictureModal = new bootstrap.Modal(document.getElementById('pictureModal'));
-  pictureModal.show();
+async function productsEditPictureChange() {
+  productEditImageUrl.value = URL.createObjectURL(productEditPictureRef.value.files[0]);
 }
 
 onBeforeMount(async () => {
@@ -130,15 +143,13 @@ onBeforeMount(async () => {
             </select>
             <label for="floatingSelect">Категория</label>
           </div>
-          <div class="form-floating mb-3">
-            <input
-              class="form-control"
-              type="file"
-              ref="productPictureRef"
-              @change="productEditImageUrl" />
+          <div class="col-auto">
+            <div class="form-floating">
+              <input class="form-control" type="file" ref="productEditPictureRef" @change="productsEditPictureChange"></input>
+            </div>
           </div>
           <div class="form-floating mb-3">
-            <img :src="productAddImageUrl" style="max-height: 60px" alt="" />
+            <img :src="productEditImageUrl" style="max-height: 60px" alt="" />
           </div>
         </div>
         <div class="modal-footer">
@@ -150,29 +161,6 @@ onBeforeMount(async () => {
             data-bs-dismiss="modal">
             Сохранить
           </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div
-    class="modal fade"
-    id="pictureModal"
-    tabindex="-1"
-    aria-labelledby="pictureModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="pictureModalLabel">Просмотр изображения</h5>
-          <button
-            type="button"
-            class="btn-close"
-            data-bs-dismiss="modal"
-            aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <img :src="selectedPicture" class="img-fluid" alt="Изображение" />
         </div>
       </div>
     </div>
@@ -232,7 +220,7 @@ onBeforeMount(async () => {
         <img
           :src="product.picture"
           style="max-height: 60px; cursor: pointer"
-          @click="openPictureModal(product.picture)"
+          @click="selectedPicture = product.picture"
           alt="Изображение продукта" />
       </div>
       <button
@@ -247,6 +235,10 @@ onBeforeMount(async () => {
       </button>
     </div>
   </div>
+
+  <div v-if="selectedPicture" class="overlay" @click="selectedPicture = null">
+    <img :src="selectedPicture" class="zoomed-image" alt="Изображение" />
+  </div>
 </template>
 
 <style lang="scss" scoped>
@@ -257,9 +249,27 @@ onBeforeMount(async () => {
   border-radius: 8px;
   background-color: #f9f9f9;
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr 1fr auto auto;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr auto auto auto;
   gap: 16px;
   align-items: center;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.zoomed-image {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 10px;
 }
 </style>
