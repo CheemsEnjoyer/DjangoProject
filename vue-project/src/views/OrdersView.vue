@@ -14,14 +14,21 @@ const orders = ref([]);
 const users = ref([]);
 
 const loading = ref(false);
+const isSuperuser = ref(false);  // Флаг для проверки суперюзера
+const selectedUserId = ref('');
 
 const ordersById = computed(() => {
   return _.keyBy(orders.value, (x) => x.id);
 });
 
 async function fetchUsers() {
-  const r = await axios.get('/api/users/');
-  users.value = r.data;
+  try {
+    const response = await axios.get('/api/users/');
+    users.value = response.data;
+    isSuperuser.value = true;
+  } catch (error) {
+    isSuperuser.value = false;
+  }
 }
 
 async function fetchCustomers() {
@@ -31,21 +38,25 @@ async function fetchCustomers() {
 
 async function fetchOrders() {
   loading.value = true;
-  const r = await axios.get('/api/orders/');
+  let url = '/api/orders/';
+  if (isSuperuser.value && selectedUserId.value) {
+    url += `?user_id=${selectedUserId.value}`;
+  }
+  const r = await axios.get(url);
   orders.value = r.data;
   loading.value = false;
 }
 
 async function onOrdersAdd() {
-  await axios.post('/api/orders/', {
-    ...ordersToAdd.value,
-  });
+  const data = { ...ordersToAdd.value };
+  delete data.user;
+  await axios.post('/api/orders/', data);
   await fetchOrders();
 }
 
 async function onRemoveClick(order) {
   await axios.delete(`/api/orders/${order.id}/`);
-  await fetchOrders(); // переподтягиваю
+  await fetchOrders();
 }
 
 async function onOrderEditClick(order) {
@@ -65,21 +76,29 @@ function getStatusDescription(status) {
 }
 
 async function onUpdateOrder() {
-  await axios.put(`/api/orders/${ordersToEdit.value.id}/`, {
-    ...ordersToEdit.value,
-  });
+  const data = { ...ordersToEdit.value };
+  delete data.user;
+  await axios.put(`/api/orders/${ordersToEdit.value.id}/`, data);
   await fetchOrders();
 }
 
 onBeforeMount(async () => {
   axios.defaults.headers.common['X-CSRFToken'] = Cookies.get('csrftoken');
-  await fetchUsers();
+  await fetchUsers(); 
   await fetchCustomers();
   await fetchOrders();
 });
 </script>
 
 <template>
+  <div v-if="isSuperuser" class="form-floating mb-3">
+    <select class="form-select" v-model="selectedUserId" @change="fetchOrders">
+      <option value="">Все пользователи</option>
+      <option v-for="u in users" :key="u.id" :value="u.id">{{ u.username }}</option>
+    </select>
+    <label for="floatingSelect">Фильтр по пользователю</label>
+  </div>
+
   <div
     class="modal fade"
     id="editOrderModal"
@@ -89,7 +108,7 @@ onBeforeMount(async () => {
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="exampleModalLabel">Заказы</h5>
+          <h5 class="modal-title" id="exampleModalLabel">Редактирование заказа</h5>
           <button
             type="button"
             class="btn-close"
@@ -99,15 +118,15 @@ onBeforeMount(async () => {
         <div class="modal-body">
           <div class="row">
             <div class="col">
-              <div class="form-floating">
+              <div class="form-floating mb-3">
                 <input type="text" class="form-control" v-model="ordersToEdit.address" required />
                 <label for="floatingInput">Адрес</label>
               </div>
-              <div class="form-floating">
+              <div class="form-floating mb-3">
                 <input type="number" class="form-control" v-model="ordersToEdit.sum" required />
                 <label for="floatingInput">Сумма</label>
               </div>
-              <div class="form-floating">
+              <div class="form-floating mb-3">
                 <select class="form-select" v-model="ordersToEdit.status" required>
                   <option disabled value="">Выберите статус</option>
                   <option value="ordered">Оформлен</option>
@@ -119,10 +138,10 @@ onBeforeMount(async () => {
                 <label for="floatingSelect">Статус</label>
               </div>
             </div>
-            <div class="col-auto">
-              <div class="form-floating">
+            <div class="col-auto" v-if="isSuperuser">
+              <div class="form-floating mb-3">
                 <select class="form-select" v-model="ordersToEdit.user_id" required>
-                  <option v-for="u in users" :value="u.id">{{ u.username }}</option>
+                  <option v-for="u in users" :key="u.id" :value="u.id">{{ u.username }}</option>
                 </select>
                 <label for="floatingInput">Покупатель</label>
               </div>
@@ -167,10 +186,10 @@ onBeforeMount(async () => {
             <label for="floatingSelect">Статус</label>
           </div>
         </div>
-        <div class="col-auto">
+        <div class="col-auto" v-if="isSuperuser">
           <div class="form-floating mb-3" style="margin-top: 10px">
             <select class="form-select" v-model="ordersToAdd.user_id" required>
-              <option v-for="u in users" :value="u.id">{{ u.username }}</option>
+              <option v-for="u in users" :key="u.id" :value="u.id">{{ u.username }}</option>
             </select>
             <label for="floatingInput">Покупатель</label>
           </div>
@@ -180,8 +199,9 @@ onBeforeMount(async () => {
         </div>
       </div>
     </form>
+
     <div v-for="item in orders" class="order_item" :key="item.id">
-      <span><b>Покупатель:</b> {{ item.user.username }}</span>
+      <span v-if="isSuperuser"><b>Покупатель:</b> {{ item.user.username }}</span>
       <span><b>Адрес:</b> {{ item.address }}</span>
       <span><b>Сумма:</b> {{ item.sum }}</span>
       <span><b>Статус:</b> {{ getStatusDescription(item.status) }}</span>

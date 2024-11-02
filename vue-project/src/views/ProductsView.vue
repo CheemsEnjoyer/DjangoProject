@@ -18,6 +18,10 @@ const productAddImageUrl = ref();
 const productEditImageUrl = ref();
 const productEditPictureRef = ref();
 
+const isSuperuser = ref(false);
+const users = ref([]);
+const selectedUserId = ref('');
+
 const selectedPicture = ref(null);
 
 const productsById = computed(() => {
@@ -31,9 +35,25 @@ async function fetchCategories() {
 
 async function fetchProducts() {
   loading.value = true;
-  const r = await axios.get('/api/products/');
+  let url = '/api/products/';
+  
+  if (isSuperuser.value && selectedUserId.value) {
+    url += `?user_id=${selectedUserId.value}`;
+  }
+
+  const r = await axios.get(url);
   products.value = r.data;
   loading.value = false;
+}
+
+async function fetchUsers() {
+  try {
+    const response = await axios.get('/api/users/');
+    users.value = response.data;
+    isSuperuser.value = true;
+  } catch (error) {
+    isSuperuser.value = false;
+  }
 }
 
 async function onProductsAdd() {
@@ -96,12 +116,22 @@ async function productsEditPictureChange() {
 
 onBeforeMount(async () => {
   axios.defaults.headers.common['X-CSRFToken'] = Cookies.get('csrftoken');
+  await fetchUsers();
   await fetchCategories();
   await fetchProducts();
 });
+
 </script>
 
 <template>
+  <div v-if="isSuperuser" class="form-floating mb-3">
+    <select class="form-select" v-model="selectedUserId" @change="fetchProducts">
+      <option value="">Все пользователи</option>
+      <option v-for="u in users" :key="u.id" :value="u.id">{{ u.username }}</option>
+    </select>
+    <label for="floatingSelect">Фильтр по пользователю</label>
+  </div>
+
   <div
     class="modal fade"
     id="editProductModal"
@@ -216,10 +246,11 @@ onBeforeMount(async () => {
       <span><b>Описание:</b> {{ product.description }}</span>
       <span><b>Количество:</b> {{ product.amount }}</span>
       <span><b>Категория:</b> {{ product.category?.name }}</span>
+      <span v-if="isSuperuser"><b>Пользователь:</b> {{ product.user?.username }}</span>
       <div v-show="product.picture">
         <img
           :src="product.picture"
-          style="max-height: 60px; cursor: pointer"
+          style="max-height: 60px; max-width: 100%; cursor: pointer"
           @click="selectedPicture = product.picture"
           alt="Изображение продукта" />
       </div>

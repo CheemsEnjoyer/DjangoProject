@@ -3,14 +3,21 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.auth.models import User
 
 class Customer(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, verbose_name="Пользователь", on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = "Клиент"
         verbose_name_plural = "Клиенты"
 
-    def __str__(self) -> str:
-        return self.user.get_full_name()
+    def __str__(self):
+        first_name = self.user.first_name or ''
+        last_name = self.user.last_name or ''
+        username = self.user.username or ''
+
+        display_name = f"{first_name} {last_name} ({username})".strip()
+
+        return display_name
+
 
 class Orders(models.Model):
     STATUS_CHOICES = [
@@ -21,7 +28,7 @@ class Orders(models.Model):
         ('picked_up', 'Забран'),
     ]
     address = models.TextField("Адрес")
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    user = models.ForeignKey(User, verbose_name="Пользователь", on_delete=models.CASCADE, null=True)
     sum = models.DecimalField("Цена", max_digits=10, decimal_places=2)
     status = models.CharField("Статус", max_length=20, choices=STATUS_CHOICES, default='ordered')
 
@@ -31,7 +38,7 @@ class Orders(models.Model):
 
 class Category(models.Model):
     name = models.TextField("Название")
-
+    user = models.ForeignKey(User, verbose_name="Пользователь", on_delete=models.CASCADE, null=True)
     class Meta:
         verbose_name = "Категория"
         verbose_name_plural = "Категории"
@@ -43,13 +50,14 @@ class Product(models.Model):
     amount = models.IntegerField("Количество")
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True)
     picture = models.ImageField("Изображение", null=True, upload_to="products")
+    user = models.ForeignKey(User, verbose_name="Пользователь", on_delete=models.CASCADE, null=True)
     class Meta:
         verbose_name = "Товар"
         verbose_name_plural = "Товары"
 
 class ShoppingCart(models.Model):
     sum = models.DecimalField("Цена", max_digits=10, decimal_places=2)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    user = models.ForeignKey(User, verbose_name="Пользователь", on_delete=models.CASCADE, null=True)
 
     class Meta:
         verbose_name = "Корзина"
@@ -69,7 +77,7 @@ class Review(models.Model):
         "Оценка", 
         validators=[MinValueValidator(1), MaxValueValidator(5)]
     )
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    user = models.ForeignKey(User, verbose_name="Пользователь", on_delete=models.CASCADE, null=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True)
 
     class Meta:

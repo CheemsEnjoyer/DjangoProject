@@ -2,6 +2,8 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework import mixins, viewsets
 from capybuyra.models import *
 from capybuyra.serializers import *
+from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import BasePermission
 
 class OrdersViewSet(mixins.ListModelMixin, 
                     mixins.UpdateModelMixin, 
@@ -13,17 +15,15 @@ class OrdersViewSet(mixins.ListModelMixin,
 
     serializer_class = OrdersSerializer
 
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
-
-    def delete(self, request, *args, **kwargs):
-        return self.delete(request, *args, **kwargs)
-
-    def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.user.is_superuser:
+            user_id = self.request.query_params.get('user_id')
+            if user_id:
+                qs = qs.filter(user_id=user_id)
+        else:
+            qs = qs.filter(user=self.request.user)
+        return qs
 
 
 class CustomerViewSet(mixins.ListModelMixin, 
@@ -35,18 +35,12 @@ class CustomerViewSet(mixins.ListModelMixin,
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
 
+    def get_queryset(self):
+        if self.request.user.is_superuser:
+            return super().get_queryset()
+        else:
+            return Customer.objects.none()
 
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
-
-    def delete(self, request, *args, **kwargs):
-        return self.delete(request, *args, **kwargs)
-
-    def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
 
 class CategoryViewSet(mixins.ListModelMixin, 
                     mixins.UpdateModelMixin, 
@@ -57,18 +51,16 @@ class CategoryViewSet(mixins.ListModelMixin,
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.user.is_superuser:
+            user_id = self.request.query_params.get('user_id')
+            if user_id:
+                qs = qs.filter(user_id=user_id)
+        else:
+            qs = qs.filter(user=self.request.user)
+        return qs
 
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
-
-    def delete(self, request, *args, **kwargs):
-        return self.delete(request, *args, **kwargs)
-
-    def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
     
 class ProductViewSet(mixins.ListModelMixin, 
                     mixins.UpdateModelMixin, 
@@ -79,17 +71,15 @@ class ProductViewSet(mixins.ListModelMixin,
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
-
-    def delete(self, request, *args, **kwargs):
-        return self.delete(request, *args, **kwargs)
-
-    def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.user.is_superuser:
+            user_id = self.request.query_params.get('user_id')
+            if user_id:
+                qs = qs.filter(user_id=user_id)
+        else:
+            qs = qs.filter(user=self.request.user)
+        return qs
 
 class ShoppingCartViewSet(mixins.ListModelMixin, 
                     mixins.UpdateModelMixin, 
@@ -100,17 +90,12 @@ class ShoppingCartViewSet(mixins.ListModelMixin,
     queryset = ShoppingCart.objects.all()
     serializer_class = ShoppingCartSerializer
 
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
+    def get_queryset(self):
+        qs = super().get_queryset()
 
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
-
-    def delete(self, request, *args, **kwargs):
-        return self.delete(request, *args, **kwargs)
-
-    def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
+        if not(self.request.user.is_superuser):
+            qs = qs.filter(user=self.request.user)
+        return qs
     
 class ReviewViewSet(mixins.ListModelMixin, 
                     mixins.UpdateModelMixin, 
@@ -121,17 +106,12 @@ class ReviewViewSet(mixins.ListModelMixin,
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
 
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
+    def get_queryset(self):
+        qs = super().get_queryset()
 
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
-
-    def delete(self, request, *args, **kwargs):
-        return self.delete(request, *args, **kwargs)
-
-    def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
+        if not(self.request.user.is_superuser):
+            qs = qs.filter(user=self.request.user)
+        return qs
     
 class ProductShoppingCartViewSet(mixins.ListModelMixin, 
                     mixins.UpdateModelMixin, 
@@ -142,18 +122,9 @@ class ProductShoppingCartViewSet(mixins.ListModelMixin,
     queryset = ProductShoppingCart.objects.all()
     serializer_class = ProductShoppingCartSerializer
 
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
-
-    def delete(self, request, *args, **kwargs):
-        return self.delete(request, *args, **kwargs)
-
-    def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
-
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    
 class OrderProductViewSet(mixins.ListModelMixin, 
                     mixins.UpdateModelMixin, 
                     mixins.RetrieveModelMixin, 
@@ -163,18 +134,10 @@ class OrderProductViewSet(mixins.ListModelMixin,
     queryset = OrderProduct.objects.all()
     serializer_class = OrderProductSerializer
 
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
-
-    def delete(self, request, *args, **kwargs):
-        return self.delete(request, *args, **kwargs)
-
-    def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
-
+class IsSuperUser(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_superuser
+    
 class UserViewSet(mixins.ListModelMixin, 
                     mixins.UpdateModelMixin, 
                     mixins.RetrieveModelMixin, 
@@ -183,15 +146,4 @@ class UserViewSet(mixins.ListModelMixin,
                     GenericViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
-
-    def delete(self, request, *args, **kwargs):
-        return self.delete(request, *args, **kwargs)
-
-    def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
+    permission_classes = [IsSuperUser]
