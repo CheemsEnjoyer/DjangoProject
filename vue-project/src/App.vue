@@ -1,4 +1,11 @@
-<script setup></script>
+<script setup>
+import { storeToRefs } from 'pinia';
+import useUserProfileStore from "@/stores/userProfileStore";
+
+const userProfileStore = useUserProfileStore();
+const { is_auth, username, is_superuser } = storeToRefs(userProfileStore);
+</script>
+
 
 <template>
   <div class="container">
@@ -20,11 +27,11 @@
             <li class="nav-item">
               <router-link class="nav-link" to="/">Заказы</router-link>
             </li>
-            <li class="nav-item">
+            <!-- <li class="nav-item">
               <router-link class="nav-link" to="/clients">Клиенты</router-link>
-            </li>
+            </li> -->
             <li class="nav-item">
-              <router-link class="nav-link" to="/shoppingcarts">Корзины</router-link>
+              <router-link class="nav-link" to="/shoppingcarts">Корзина</router-link>
             </li>
             <li class="nav-item">
               <router-link class="nav-link" to="/products">Товары</router-link>

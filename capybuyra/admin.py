@@ -21,11 +21,11 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(ShoppingCart)
 class ShoppingCartAdmin(admin.ModelAdmin):
-    list_display = ['id', 'sum', 'user_id']
+    list_display = ['id', 'user_id']
 
 @admin.register(ProductShoppingCart)
 class ProductShoppingCartAdmin(admin.ModelAdmin):
-    list_display = ['id', 'product_id', 'shopping_cart_id']
+    list_display = ['id', 'product_id', 'shopping_cart_id', 'quantity']
 
 @admin.register(OrderProduct)
 class OrderProductAdmin(admin.ModelAdmin):
