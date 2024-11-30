@@ -24,8 +24,11 @@ const productEditPictureRef = ref();
 
 const users = ref([]);
 const selectedUserId = ref('');
-
+const selectedCategoryId = ref('');
 const selectedPicture = ref(null);
+
+const minPrice = ref('');
+const maxPrice = ref('');
 
 const productsById = computed(() => {
   return _.keyBy(products.value, (x) => x.id);
@@ -44,6 +47,19 @@ async function fetchProducts() {
     url += `?user_id=${selectedUserId.value}`;
   }
 
+  if (selectedCategoryId.value) {
+    url += (url.includes('?') ? '&' : '?') + `category_id=${selectedCategoryId.value}`;
+  }
+
+  if (minPrice.value) {
+    url += (url.includes('?') ? '&' : '?') + `min_price=${minPrice.value}`;
+  }
+
+  if (maxPrice.value) {
+    url += (url.includes('?') ? '&' : '?') + `max_price=${maxPrice.value}`;
+  }
+
+  console.log("URL для запроса:", url);
   const r = await axios.get(url);
   products.value = r.data;
   loading.value = false;
@@ -122,6 +138,12 @@ async function addToCart(productId, quantity = 1) {
   }
 }
 
+function resetPriceFilters() {
+  minPrice.value = '';
+  maxPrice.value = '';
+  fetchProducts();
+}
+
 onBeforeMount(async () => {
   axios.defaults.headers.common['X-CSRFToken'] = Cookies.get('csrftoken');
   await userProfileStore.fetchUserInfo();
@@ -143,6 +165,31 @@ watch(selectedUserId, fetchProducts);
     </select>
     <label for="floatingSelect">Фильтр по пользователю</label>
   </div>
+
+  <div class="form-floating mb-3">
+    <select class="form-select" v-model="selectedCategoryId" @change="fetchProducts">
+      <option value="">Все категории</option>
+      <option v-for="category in categories" :key="category.id" :value="category.id">
+        {{ category.name }}
+      </option>
+    </select>
+    <label for="categoryFilter">Фильтр по категории</label>
+  </div>
+
+
+  <div class="row mb-3">
+    <div class="col-md-4">
+      <input type="number" class="form-control" v-model="minPrice" placeholder="Минимальная цена" />
+    </div>
+    <div class="col-md-4">
+      <input type="number" class="form-control" v-model="maxPrice" placeholder="Максимальная цена" />
+    </div>
+    <div class="col-md-4">
+      <button class="btn btn-primary" @click="fetchProducts">Применить фильтры</button>
+      <button class="btn btn-secondary" @click="resetPriceFilters" style="margin-left: 30px;">Сбросить</button>
+    </div>
+  </div>
+
   <div class="container mt-4">
     <form @submit.prevent="onProductsAdd" class="mb-4">
       <div class="row g-3 align-items-center">

@@ -136,7 +136,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 class ProductShoppingCartSerializer(serializers.ModelSerializer):
     shoppingCart = ShoppingCartSerializer(read_only=True)
-    shoppingCart_id = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all(), source='shoppingCart', write_only=True)
+    shoppingCart_id = serializers.PrimaryKeyRelatedField(queryset=ShoppingCart.objects.all(), source='shoppingCart', write_only=True)
     product = ProductSerializer(read_only=True)
     product_id = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all(), source='product', write_only=True)
     product_cost = serializers.DecimalField(source='product.cost', max_digits=10, decimal_places=2, read_only=True)

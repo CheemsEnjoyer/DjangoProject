@@ -1,4 +1,7 @@
-<script setup></script>
+<script setup>
+import { faAmazonPay, faApplePay, faGooglePay, faPaypal } from '@fortawesome/free-brands-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'; 
+</script>
 
 <template>
     <section class="vh-100 gradient-custom">
@@ -34,12 +37,14 @@
                     </div>
       
                   </div>
-      
+                  <FontAwesomeIcon :icon="faGooglePay"/>
+                  <FontAwesomeIcon :icon="faAmazonPay"/>
+                  <FontAwesomeIcon :icon="faApplePay"/>
                   <div>
-                    <p class="mb-0">Don't have an account? <a href="#!" class="text-white-50 fw-bold">Sign Up</a>
+                    <p class="mb-0">Don't have an account? <a href="/register" class="text-white-50 fw-bold">Sign Up</a>
                     </p>
+                    
                   </div>
-      
                 </div>
               </div>
             </div>

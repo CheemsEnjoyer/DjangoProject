@@ -88,23 +88,38 @@ class CategoryViewSet(mixins.ListModelMixin,
 
     
 class ProductViewSet(mixins.ListModelMixin, 
-                    mixins.UpdateModelMixin, 
-                    mixins.RetrieveModelMixin, 
-                    mixins.CreateModelMixin,
-                    mixins.DestroyModelMixin, 
-                    GenericViewSet):
+                     mixins.UpdateModelMixin, 
+                     mixins.RetrieveModelMixin, 
+                     mixins.CreateModelMixin,
+                     mixins.DestroyModelMixin, 
+                     GenericViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-
+    
     def get_queryset(self):
         qs = super().get_queryset()
+        category_id = self.request.query_params.get('category_id')
+        
         if self.request.user.is_superuser:
             user_id = self.request.query_params.get('user_id')
             if user_id:
                 qs = qs.filter(user_id=user_id)
         else:
             qs = qs.filter(user=self.request.user)
+        
+        if category_id:
+            qs = qs.filter(category_id=category_id)
+        
+        min_price = self.request.query_params.get('min_price')
+        max_price = self.request.query_params.get('max_price')
+
+        if min_price:
+            qs = qs.filter(cost__gte=min_price)
+        if max_price:
+            qs = qs.filter(cost__lte=max_price)
+            
         return qs
+
 
 class ShoppingCartViewSet(mixins.ListModelMixin, 
                     mixins.UpdateModelMixin, 

@@ -21,6 +21,8 @@ from rest_framework.routers import DefaultRouter
 from capybuyra.api import *
 from django.conf import settings
 from django.conf.urls.static import static
+from capybuyra.views import register_user
+
 
 router = DefaultRouter()
 router.register('orders', OrdersViewSet, basename='orders')
@@ -36,4 +38,5 @@ urlpatterns = [
     path('', views.ShowOrdersView.as_view()),
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
+    path('api/register/', register_user, name='register_user'),
 ] + static(settings.MEDIA_URL, document_root =settings.MEDIA_ROOT)
