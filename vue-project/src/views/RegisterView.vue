@@ -17,12 +17,12 @@ axios.defaults.headers.common['X-CSRFToken'] = Cookies.get('csrftoken');
 
 const registerUser = async () => {
   try {
-    const response = await axios.post('/api/register/', registrationData.value);
+    const response = await axios.post('/api/user/register/', registrationData.value);
     alert('Регистрация прошла успешно!');
     console.log('Ответ сервера:', response.data);
   } catch (error) {
     console.error('Ошибка при регистрации:', error.response?.data || error.message);
-    alert('Ошибка при регистрации. Попробуйте снова.');
+    alert(error.response?.data?.error || 'Ошибка при регистрации. Попробуйте снова.');
   }
 };
 
@@ -92,7 +92,7 @@ const openYouTube = () => {
                   v-model="registrationData.username"
                   required
                 />
-                <label class="form-label" for="formUsername">Username</label>
+                <label class="form-label" for="formUsername">Логин</label>
               </div>
 
               <div data-mdb-input-init class="form-outline mb-4">
@@ -132,6 +132,11 @@ const openYouTube = () => {
               </button>
             </div>
 
+            <p class="text-center mt-4">
+              У вас уже есть аккаунт? 
+              <router-link to="/login" class="text-primary">Авторизуйтесь</router-link>
+            </p>
+            
           </div>
         </div>
       </div>

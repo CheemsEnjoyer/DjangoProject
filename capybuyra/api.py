@@ -7,12 +7,13 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db.models import Avg, Count, Max, Min
 from django.contrib.auth.models import User
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.core.cache import cache
 import pyotp
 from rest_framework.permissions import IsAuthenticated, BasePermission
 from rest_framework.views import APIView
 from rest_framework import status
+from rest_framework.decorators import api_view
 
 class OrdersViewSet(mixins.ListModelMixin, 
                     mixins.UpdateModelMixin, 
@@ -202,63 +203,64 @@ class UserProfileViewset(GenericViewSet):
         
         return Response(user_info)
 
+    @action(detail=False, methods=["POST"], url_path="register")
+    def register_user(self, request):
+        data = request.data
+        if not all(key in data for key in ['username', 'first_name', 'last_name', 'email', 'password']):
+            return Response({'error': 'Все поля обязательны.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if User.objects.filter(email=data['email']).exists():
+            return Response({'error': 'Пользователь с таким email уже существует.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if User.objects.filter(username=data['username']).exists():
+            return Response({'error': 'Пользователь с таким username уже существует.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = User.objects.create_user(
+            username=data['username'],
+            email=data['email'],
+            first_name=data['first_name'],
+            last_name=data['last_name'],
+            password=data['password']
+        )
+
+        return Response({'message': 'Пользователь успешно зарегистрирован!'}, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=['post'], url_path='login', permission_classes=[])
+    def login(self, request, *args, **kwargs):
+        username = self.request.data['username']
+        password = self.request.data['password']
+
+        user = authenticate(username=username, password=password)
+        if user:
+            login(request, user)
+        
+        return Response({
+            'is_auth': bool(user)
+        })
+    
+    @action(detail=False, methods=['get'], url_path='logout', permission_classes=[])
+    def logout(self, request, *args, **kwargs):
+        if self.request.user.is_authenticated:
+            #request.user.auth_token.delete()
+            logout(request)
+        return Response({
+            'is_auth': False
+        })
+    
+    @action(detail=False, methods=["GET"], url_path="initialize")
+    def initialize_auth(self, request, *args, **kwargs):
+        user = self.request.user
+        user_info = {
+            "is_authenticated": user.is_authenticated,
+            "username": user.username if user.is_authenticated else "",
+            "is_superuser": user.is_superuser if user.is_authenticated else False
+        }
+        return Response(user_info, status=status.HTTP_200_OK)
+    
     @action(url_path="all", methods=["GET"], detail=False)
     def list_users(self, request, *args, **kwargs):
         users = User.objects.all().values("id", "username", "is_superuser")
         return Response(list(users))
-    
-    permission_classes = [IsAuthenticated]
-
-    class OTPSerializer(serializers.Serializer):
-        key = serializers.CharField()
-
-    class OTPRequired(BasePermission):
-        def has_permission(self, request, view):
-            return bool(request.user and cache.get('otp_good', False))
-        
-    @action(detail=False, url_path="check-login", methods=['GET'], permission_classes=[])
-    def get_check_login(self, request, *args, **kwargs):
-        return Response({
-            'is_authenticated': self.request.user.is_authenticated
-        })
-    
-    @action(detail=False, url_path="login", methods=['GET'], permission_classes=[])
-    def use_login(self, request, *args, **kwargs):
-        user= authenticate(username='username', password='pass')
-        if user:
-            login(request, user)
-        return Response({
-            'is_authenticated': bool(user)
-        })
-
-    @action(detail=False, url_path='otp-login', methods=['POST'], serializer_class=OTPSerializer)
-    def otp_login(self, *args, **kwargs):
-        totp = pyotp.TOTP(self.request.user.userprofile.opt_key)
-        
-        serializer = self.get_serializer(data=self.request.data)
-        serializer.is_valid(raise_exception=True)
-
-        success = False
-        if totp.now() == serializer.validated_data['key']:
-            cache.set('otp_good', True, 10)
-            success = True
-
-        return Response({
-            'success': success
-        })
-    
-    @action(detail=False, url_path='otp-status')
-    def get_otp_status(self, *args, **kwargs):
-        otp_good = cache.get('otp_good', False)
-        return Response({
-            'otp_good': otp_good
-        })
-    
-    @action(detail=False, url_path='otp-required', permission_classes=[OTPRequired])
-    def page_with_otp_required(self, *args, **kwargs):
-        return Response({
-            'success': True
-        })
 
 
 class AddToCartViewSet(GenericViewSet):

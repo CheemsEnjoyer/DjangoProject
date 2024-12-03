@@ -40,11 +40,7 @@ onBeforeMount(async () => {
 </script>
 
 <template>
-  <div v-if="loading" class="text-center">
-    <p>Загрузка корзины...</p>
-  </div>
-
-  <div v-else-if="is_auth">
+  <div v-if="is_auth">
     <h5>
       Покупатель: {{ username }}
       <span v-if="is_superuser">(Администратор)</span>

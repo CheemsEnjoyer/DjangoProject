@@ -59,7 +59,6 @@ async function fetchProducts() {
     url += (url.includes('?') ? '&' : '?') + `max_price=${maxPrice.value}`;
   }
 
-  console.log("URL для запроса:", url);
   const r = await axios.get(url);
   products.value = r.data;
   loading.value = false;
@@ -145,6 +144,7 @@ function resetPriceFilters() {
 }
 
 onBeforeMount(async () => {
+  
   axios.defaults.headers.common['X-CSRFToken'] = Cookies.get('csrftoken');
   await userProfileStore.fetchUserInfo();
   await fetchCategories();
