@@ -143,6 +143,21 @@ function resetPriceFilters() {
   fetchProducts();
 }
 
+const exportData = async (format) => {
+  const url = `/api/products/export-${format}/`;
+  try {
+    const response = await axios.get(url, { responseType: "blob" });
+    const blob = new Blob([response.data]);
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `products.${format === "excel" ? "xlsx" : "docx"}`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  } catch (error) {
+    console.error("Ошибка при экспорте данных:", error);
+  }
+};
+
 onBeforeMount(async () => {
   
   axios.defaults.headers.common['X-CSRFToken'] = Cookies.get('csrftoken');
@@ -280,6 +295,11 @@ watch(selectedUserId, fetchProducts);
       
     </form>
 
+    <div class="export-buttons">
+      <button @click="exportData('excel')" class="btn btn-primary">Сохранить в Excel</button>
+      <button @click="exportData('word')" class="btn btn-secondary">Сохранить в Word</button>
+    </div>
+    
     <div class="row">
       <div class="col-md-4" v-for="product in products" :key="product.id">
         <div class="card mb-4 shadow-sm bg-warning">
@@ -380,4 +400,10 @@ watch(selectedUserId, fetchProducts);
   max-height: 90%;
   border-radius: 10px;
 }
+.export-buttons {
+  margin-bottom: 20px;
+  display: flex;
+  gap: 10px;
+}
+
 </style>
