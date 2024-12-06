@@ -9,11 +9,15 @@ from django.db.models import Avg, Count, Max, Min
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.core.cache import cache
+from django.http import HttpResponse
 import pyotp
 from rest_framework.permissions import IsAuthenticated, BasePermission
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.decorators import api_view
+import openpyxl
+from io import BytesIO
+from docx import Document
 
 class OrdersViewSet(mixins.ListModelMixin, 
                     mixins.UpdateModelMixin, 
@@ -123,6 +127,63 @@ class ProductViewSet(mixins.ListModelMixin,
             qs = qs.filter(cost__lte=max_price)
             
         return qs
+    
+    @action(detail=False, methods=["GET"], url_path="export-excel")
+    def export_to_excel(self, request):
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Products"
+
+        headers = ["ID", "Name", "Cost", "Description", "Amount", "Category"]
+        ws.append(headers)
+
+        products = Product.objects.all()
+        for product in products:
+            ws.append([
+                product.id,
+                product.name,
+                product.cost,
+                product.description,
+                product.amount,
+                product.category.name if product.category else ""
+            ])
+
+        output = BytesIO()
+        wb.save(output)
+        output.seek(0)
+
+        response = HttpResponse(output, content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        response["Content-Disposition"] = 'attachment; filename="products.xlsx"'
+        return response
+
+    @action(detail=False, methods=["GET"], url_path="export-word")
+    def export_to_word(self, request):
+        doc = Document()
+        doc.add_heading("Products List", level=1)
+
+        table = doc.add_table(rows=1, cols=6)
+        headers = ["ID", "Name", "Cost", "Description", "Amount", "Category"]
+        hdr_cells = table.rows[0].cells
+        for i, header in enumerate(headers):
+            hdr_cells[i].text = header
+
+        products = Product.objects.all()
+        for product in products:
+            row_cells = table.add_row().cells
+            row_cells[0].text = str(product.id)
+            row_cells[1].text = product.name
+            row_cells[2].text = str(product.cost)
+            row_cells[3].text = product.description
+            row_cells[4].text = str(product.amount)
+            row_cells[5].text = product.category.name if product.category else ""
+
+        output = BytesIO()
+        doc.save(output)
+        output.seek(0)
+
+        response = HttpResponse(output, content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+        response["Content-Disposition"] = 'attachment; filename="products.docx"'
+        return response
 
 
 class ShoppingCartViewSet(mixins.ListModelMixin, 
