@@ -120,7 +120,7 @@ onBeforeMount(async () => {
     <form @submit.prevent.stop="onCategoriesAdd">
       <div class="row">
         <div class="col">
-          <div class="form-floating mb-3">
+          <div v-if="is_superuser" class="form-floating mb-3">
             <input type="text" class="form-control" v-model="categoriesToAdd.name" required />
             <label for="floatingInput">Название</label>
           </div>

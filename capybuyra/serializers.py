@@ -99,9 +99,27 @@ class ProductSerializer(serializers.ModelSerializer):
         model = Product
         fields = "__all__"
 
+class ProductInCartSerializer(serializers.ModelSerializer):
+    product_cost = serializers.DecimalField(
+        source="product.cost", max_digits=10, decimal_places=2, read_only=True
+    )
+    product_name = serializers.CharField(source="product.name", read_only=True)
+
+    class Meta:
+        model = ProductShoppingCart
+        fields = ["id", "product_name", "product_cost", "quantity"]
+
 class ShoppingCartSerializer(serializers.ModelSerializer):
-    user  = UserSerializer(read_only=True)
+    user = UserSerializer(read_only=True)
     user_id = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), source='user', write_only=True, required=False)
+
+    items = ProductInCartSerializer(many=True, read_only=True)
+    total = serializers.SerializerMethodField()
+
+    def get_total(self, obj):
+        return sum(
+            item.product.cost * item.quantity for item in obj.items.all()
+        )
 
     def create(self, validated_data): 
         if 'request' in self.context:
@@ -111,6 +129,7 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShoppingCart
         fields = "__all__"
+
 
 class ReviewSerializer(serializers.ModelSerializer):
     user  = UserSerializer(read_only=True)

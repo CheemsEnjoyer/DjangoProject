@@ -201,13 +201,15 @@ onBeforeMount(async () => {
         <span><b>Оценка:</b> {{ item.rating }}</span>
         <span><b>Текст:</b> {{ item.text }}</span>
         <button
+          v-if="is_superuser"
           class="btn btn-info"
           @click="onReviewEditClick(item)"
           data-bs-toggle="modal"
           data-bs-target="#editReviewModal">
           <i class="bi bi-pen-fill"></i>
         </button>
-        <button class="btn btn-danger" @click="onRemoveClick(item)">
+        <button v-if="is_superuser" 
+        class="btn btn-danger" @click="onRemoveClick(item)">
           <i class="bi bi-x"></i>
         </button>
       </div>

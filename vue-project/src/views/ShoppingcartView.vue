@@ -15,18 +15,20 @@ const loading = ref(false);
 async function fetchShoppingcart() {
   loading.value = true;
   try {
-    const response = await axios.get('/api/shoppingcarts/');
+    const response = await axios.get('/api/shoppingcarts/my_cart/');
     shoppingcart.value = response.data;
   } catch (error) {
     console.error("Ошибка при загрузке корзины:", error);
+    shoppingcart.value = null;
   } finally {
     loading.value = false;
   }
 }
 
-async function removeProductFromCart(cartItemId) {
+
+async function removeProductFromCart(productId) {
   try {
-    await axios.delete(`/api/productshoppingcart/${cartItemId}/`);
+    await axios.delete(`/api/productshoppingcart/${productId}/`);
     await fetchShoppingcart();
   } catch (error) {
     console.error("Ошибка при удалении товара из корзины:", error);
@@ -47,16 +49,19 @@ onBeforeMount(async () => {
     </h5>
 
     <ul v-if="shoppingcart && shoppingcart.items && shoppingcart.items.length">
-      <li v-for="item in shoppingcart.items" :key="item.id">
-        {{ item.product.name }} - 
-        {{ item.quantity }} шт. - 
-        {{ item.product_cost }} ₽
-        <button class="btn btn-danger btn-sm" @click="removeProductFromCart(item.id)">
+      <li v-for="item in shoppingcart.items" :key="item.id" class="shoppingcart_item">
+        <span>
+          {{ item.product_name }} - 
+          {{ item.quantity }} шт. - 
+          {{ (item.product_cost * item.quantity).toFixed(2) }} ₽
+        </span>
+        <!-- <button class="btn btn-danger btn-sm" @click="removeProductFromCart(item.id)">
           <i class="bi bi-x"></i>
-        </button>
+        </button> -->
       </li>
     </ul>
-
+    
+    
     <p v-else>Корзина пуста.</p>
 
     <strong v-if="shoppingcart && shoppingcart.total">Общая сумма: {{ shoppingcart.total }} ₽</strong>
@@ -66,6 +71,7 @@ onBeforeMount(async () => {
     <p>Вы не авторизованы. Пожалуйста, войдите в систему.</p>
   </div>
 </template>
+
 
 <style scoped>
 .shoppingcart_item {

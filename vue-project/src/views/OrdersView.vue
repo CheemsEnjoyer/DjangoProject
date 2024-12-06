@@ -21,6 +21,7 @@ const orderStats = ref({});
 
 const loading = ref(false);
 const selectedUserId = ref('');
+const selectedStatus = ref('');
 
 const ordersById = computed(() => {
   return _.keyBy(orders.value, (x) => x.id);
@@ -43,13 +44,24 @@ async function fetchCustomers() {
 async function fetchOrders() {
   loading.value = true;
   let url = '/api/orders/';
+  const params = [];
+
   if (is_superuser.value && selectedUserId.value) {
-    url += `?user_id=${selectedUserId.value}`;
+    params.push(`user_id=${selectedUserId.value}`);
   }
+  if (selectedStatus.value) {
+    params.push(`status=${selectedStatus.value}`);
+  }
+
+  if (params.length > 0) {
+    url += `?${params.join('&')}`;
+  }
+
   const r = await axios.get(url);
   orders.value = r.data;
   loading.value = false;
 }
+
 
 async function fetchOrdersStats() {
   try {
@@ -116,6 +128,16 @@ onBeforeMount(async () => {
     <label for="floatingSelect">Фильтр по пользователю</label>
   </div>
 
+  <div class="form-floating mb-3">
+    <select class="form-select" v-model="selectedStatus" @change="fetchOrders">
+      <option value="">Все статусы</option>
+      <option v-for="(label, value) in STATUS_CHOICES" :key="value" :value="value">
+        {{ label }}
+      </option>
+    </select>
+    <label for="statusFilter">Фильтр по статусу</label>
+  </div>
+  
   <div class="stats-container">
     <h3>Статистика заказов</h3>
     <ul>
@@ -213,7 +235,7 @@ onBeforeMount(async () => {
             <label for="floatingInput">Покупатель</label>
           </div>
         </div> -->
-        <div v-if="is_superuser" class="col-auto" style="margin-top: 10px" >
+        <div class="col-auto" style="margin-top: 10px" >
           <button class="btn btn-primary">Добавить</button>
         </div>
       </div>

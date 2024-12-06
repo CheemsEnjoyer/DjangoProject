@@ -27,12 +27,15 @@ class OrdersViewSet(mixins.ListModelMixin,
 
     def get_queryset(self):
         qs = super().get_queryset()
+        status = self.request.query_params.get('status')
         if self.request.user.is_superuser:
             user_id = self.request.query_params.get('user_id')
             if user_id:
                 qs = qs.filter(user_id=user_id)
         else:
             qs = qs.filter(user=self.request.user)
+        if status:
+            qs = qs.filter(status=status)
         return qs
 
     class StatsSerializer(serializers.Serializer):
@@ -77,15 +80,15 @@ class CategoryViewSet(mixins.ListModelMixin,
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
-    def get_queryset(self):
-        qs = super().get_queryset()
-        if self.request.user.is_superuser:
-            user_id = self.request.query_params.get('user_id')
-            if user_id:
-                qs = qs.filter(user_id=user_id)
-        else:
-            qs = qs.filter(user=self.request.user)
-        return qs
+    # def get_queryset(self):
+    #     qs = super().get_queryset()
+    #     if self.request.user.is_superuser:
+    #         user_id = self.request.query_params.get('user_id')
+    #         if user_id:
+    #             qs = qs.filter(user_id=user_id)
+    #     else:
+    #         qs = qs.filter(user=self.request.user)
+    #     return qs
 
     
 class ProductViewSet(mixins.ListModelMixin, 
@@ -101,12 +104,12 @@ class ProductViewSet(mixins.ListModelMixin,
         qs = super().get_queryset()
         category_id = self.request.query_params.get('category_id')
         
-        if self.request.user.is_superuser:
-            user_id = self.request.query_params.get('user_id')
-            if user_id:
-                qs = qs.filter(user_id=user_id)
-        else:
-            qs = qs.filter(user=self.request.user)
+        # if self.request.user.is_superuser:
+        #     user_id = self.request.query_params.get('user_id')
+        #     if user_id:
+        #         qs = qs.filter(user_id=user_id)
+        # else:
+        #     qs = qs.filter(user=self.request.user)
         
         if category_id:
             qs = qs.filter(category_id=category_id)
@@ -133,14 +136,37 @@ class ShoppingCartViewSet(mixins.ListModelMixin,
 
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    @action(detail=False, methods=["GET"], url_path="my_cart")
+    def my_cart(self, request):
+        user = request.user
+        if not user.is_authenticated:
+            return Response({"error": "Неавторизованный пользователь"}, status=401)
+
+        shopping_cart = ShoppingCart.objects.filter(user=user).first()
+        if not shopping_cart:
+            return Response({"items": [], "total": 0})
+
+        serializer = self.get_serializer(shopping_cart)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['delete'], url_path="remove/(?P<product_id>[^/.]+)")
+    def remove_product(self, request, product_id=None):
         try:
-            cart = ShoppingCart.objects.get(user=request.user)
-            serializer = ShoppingCartSerializer(cart)
-            return Response(serializer.data)
+            shopping_cart = ShoppingCart.objects.get(user=request.user)
+            item = ProductShoppingCart.objects.get(
+                shopping_cart=shopping_cart, product_id=product_id
+            )
+            item.delete()
+            return Response({"message": "Товар удалён из корзины."}, status=status.HTTP_204_NO_CONTENT)
+        except ProductShoppingCart.DoesNotExist:
+            return Response(
+                {"error": "Товар не найден в корзине."}, status=status.HTTP_404_NOT_FOUND
+            )
         except ShoppingCart.DoesNotExist:
-            return Response({'error': 'Корзина не найдена'}, status=404)
-        
+            return Response(
+                {"error": "У пользователя нет корзины."}, status=status.HTTP_404_NOT_FOUND
+            )
+
     def get_queryset(self):
         qs = super().get_queryset()
 
@@ -157,15 +183,15 @@ class ReviewViewSet(mixins.ListModelMixin,
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
 
-    def get_queryset(self):
-        qs = super().get_queryset()
-        if self.request.user.is_superuser:
-            user_id = self.request.query_params.get('user_id')
-            if user_id:
-                qs = qs.filter(user_id=user_id)
-        else:
-            qs = qs.filter(user=self.request.user)
-        return qs
+    # def get_queryset(self):
+    #     qs = super().get_queryset()
+    #     if self.request.user.is_superuser:
+    #         user_id = self.request.query_params.get('user_id')
+    #         if user_id:
+    #             qs = qs.filter(user_id=user_id)
+    #     else:
+    #         qs = qs.filter(user=self.request.user)
+    #     return qs
     
 class ProductShoppingCartViewSet(mixins.ListModelMixin, 
                     mixins.UpdateModelMixin, 
@@ -178,6 +204,7 @@ class ProductShoppingCartViewSet(mixins.ListModelMixin,
 
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
     
 class OrderProductViewSet(mixins.ListModelMixin, 
                     mixins.UpdateModelMixin, 
